@@ -1,15 +1,5 @@
 #! /usr/bin/env python3
 
-# 2.
-# The script should also be able to handle FASTQ files.
-# It's up to you how to implement this: The script can try to detect the file format automatically,
-# e.g. by looking at the first character of the first sequence entry (">" for FASTA, "@" for FASTQ),
-# or you can pass the file format as an additional command-line argument.
-# (A Stackoverflow post suggests another approach; do you think it will always work?
-# If not, can you give an example where it mistakes a FASTQ for a FASTA file? [5 bonus points]) [20 points]
-
-# it could mistake a FASTQ for a FASTA file if the first character of the first sequence entry is a ">", or if there is a any other line before the sequences starts, or if the file extension is simply not correct.
-
 import random
 import gzip
 from Bio.SeqIO.FastaIO import SimpleFastaParser
@@ -26,13 +16,6 @@ logger = logging.getLogger(__name__)  # create custom logger
 # Logging levels: DEBUG/INFO/WARNING/ERROR/CRITICAL
 logger.setLevel(logging.INFO)
 
-# SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-# print(SCRIPT_DIR)
-# fasta_file = os.path.join(SCRIPT_DIR, "fasta_testfile.fasta")
-# fastq_file = os.path.join(SCRIPT_DIR, "Test_L001_R1_001.fastq")
-# fastq_gz_file = os.path.join(SCRIPT_DIR, "Test_L001_R1_001.fastq.gz")
-# unknown_file = os.path.join(SCRIPT_DIR, "test.fasta")
-
 
 def open_file(input_file):
     """Opens a file, which can be a gzipped file or a normal file.
@@ -41,10 +24,10 @@ def open_file(input_file):
         input_file (str): Path to the file, which can be a gzipped file or a normal file.
 
     Returns:
-        _file handle_: file handle
+        file handle: A handle to the opened file.
 
     Raises:
-        ValueError: If the file does not exist or is not readable
+        ValueError: If the file does not exist or is not readable.
     """
     try:
         if input_file.endswith(".gz"):
@@ -61,13 +44,13 @@ def open_file(input_file):
 
 
 def detect_file_format(input_file):
-    """Determine if the file is in FASTA, FASTQ format, or if the format is unknown.
+    """ "Determine if the file is in FASTA, FASTQ format, or if the format is unknown.
 
     Args:
         input_file (str): Path to the file, which can be a gzipped file or a normal file.
 
     Returns:
-        str: One of the following strings - 'fasta', 'fastq', or 'unknown' format.
+        str: One of the following strings - 'fasta', 'fastq'.
 
     Raises:
         ValueError: If the file format is unknown
@@ -89,13 +72,14 @@ def read_records(input_file, use_fast_parsing=False):
 
     Args:
         input_file (str): File to be handled.
-        use_fast_parsing (bool): Decide if fast parsing should be used.
+        use_fast_parsing (bool): Decide if fast parsing should be used. Defaults to False.
 
     Returns:
-        list or dict: If `use_fast_parsing` is True, returns a list of tuples or a dictionary
-                      with the sequences (depending on the file format). If False, returns a
-                      dictionary with sequence identifiers as keys and corresponding sequences
-                      as values.
+        list or dict or SeqIO.index: If `use_fast_parsing` is True, returns a list of tuples
+                                      (for FASTA) or a dictionary (for FASTQ) with the sequences.
+                                      If False, returns a SeqIO.index object representing the
+                                      sequences with identifiers as keys and corresponding
+                                      sequences as values.
     """
     read_file = open_file(input_file)
     file_format = detect_file_format(input_file)
@@ -133,7 +117,10 @@ def decrompress_file(input_file):
         input_file (str): Path to the file, which is a gzipped file.
 
     Returns:
-        _str_: file name of input file as string
+        str: File name of the decompressed file as a string.
+
+    Raises:
+        ValueError: If an error occurs during decompression or copying, or if the file is not readable.
     """
     logger.info(f"Decompressing file: {input_file}")
 
@@ -173,16 +160,15 @@ def subsample_sequences(
     Args:
         input_file (str): Path to the file containing sequences.
         num_reads (int): Number of reads to subsample.
-        use_fast_parsing (bool): Decide whether to use fast parsing methods. Defaults to False.
+        use_fast_parsing (bool, optional): Decide whether to use fast parsing methods. Defaults to False.
         set_seed (bool, optional): If True, set a seed for reproducibility. Defaults to False.
-        preserve_format (bool, optional): If True, preserve the original formatting of the sequences.
+        preserve_format (bool, optional): If True, preserve the original formatting of the sequences. Defaults to False.
 
     Raises:
-        ValueError: if the number of reads is larger than the number of sequences in the file
+        ValueError: If the number of reads is larger than the number of sequences in the file.
 
     Returns:
-        None
-        write to stdout or calls fasta_output function
+        None. Writes to stdout or calls fasta_output function.
     """
 
     if set_seed:
@@ -213,6 +199,19 @@ def subsample_sequences(
 
 
 def fasta_output(input_file, selected_records, use_fast_parsing):
+    """Print subsampled sequences to stdout in FASTA or FASTQ format not preserving the number of lines.
+
+    Args:
+        input_file (str): Path to the original file containing sequences.
+        selected_records (list or dict): Subsampled records to be printed. If fast parsing is used, a list of tuples is expected. If not, a dictionary is expected.
+        use_fast_parsing (bool): Indicates whether fast parsing methods were used.
+
+
+
+
+    Returns:
+        None. Writes to stdout.
+    """
     file_format = detect_file_format(input_file)
     if use_fast_parsing:
         logger.info("Preserve format is not needed; subsampling is printed to stdout")
@@ -246,7 +245,12 @@ def main(args):
         for fast parsing, preserving format, and setting a seed for random number generation.
 
     Example:
-        $ python Subsample_CP_LG_0129.py fasta_testfile.fasta 3 -f -p -s 42
+        $ python final_Grabmann_Pfeiffer.py fasta_testfile.fasta 3 -f -p -s 42
+
+    Notes:
+        - If both -f (fast) and -p (preserve format) flags are used together, the combination is not allowed.
+          Please use the -p flag without the -f flag.
+
     """
 
     logger.debug("Executing main function.")
@@ -317,10 +321,3 @@ if __name__ == "__main__":
 
     # logger.warning(f"Program arguments: {args}")
     main(args)
-
-
-# Test code via command line
-# python Subsample_CP_LG_edit.py fasta_testfile.fasta 3 -f -p -s 42
-# python Subsample_CP_LG_edit.py Test_L001_R1_001.fastq 3 -f -p -s 42
-# python Subsample_CP_LG_edit.py Test_L001_R2_001.fastq 3 -f -p -s 42
-# python Subsample_CP_LG_edit.py Test_L001_R1_001.fastq.gz 3 -f -p -s 42
