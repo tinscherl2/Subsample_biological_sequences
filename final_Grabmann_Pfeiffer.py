@@ -75,11 +75,11 @@ def read_records(input_file, use_fast_parsing=False):
         use_fast_parsing (bool): Decide if fast parsing should be used. Defaults to False.
 
     Returns:
-        list or dict or SeqIO.index: If `use_fast_parsing` is True, returns a list of tuples
-                                      (for FASTA) or a dictionary (for FASTQ) with the sequences.
-                                      If False, returns a SeqIO.index object representing the
-                                      sequences with identifiers as keys and corresponding
-                                      sequences as values.
+        list or dict: If `use_fast_parsing` is True, returns a list of tuples
+                        with the sequences.
+                        If False, returns a sictionary like object representing the
+                        sequences with identifiers as keys and corresponding
+                        sequences as values.
     """
     read_file = open_file(input_file)
     file_format = detect_file_format(input_file)
@@ -100,7 +100,7 @@ def read_records(input_file, use_fast_parsing=False):
             file_name = decrompress_file(input_file)
             records = SeqIO.index(
                 file_name, file_format
-            )  # SeqIO.index returns a dictionary
+            )  # SeqIO.index returns a dictionary like object
         else:
             records = SeqIO.index(input_file, file_format)
             # SeqIO.index cannot deal with file handles, but needs a file name
@@ -206,9 +206,6 @@ def fasta_output(input_file, selected_records, use_fast_parsing):
         selected_records (list or dict): Subsampled records to be printed. If fast parsing is used, a list of tuples is expected. If not, a dictionary is expected.
         use_fast_parsing (bool): Indicates whether fast parsing methods were used.
 
-
-
-
     Returns:
         None. Writes to stdout.
     """
@@ -245,7 +242,7 @@ def main(args):
         for fast parsing, preserving format, and setting a seed for random number generation.
 
     Example:
-        $ python final_Grabmann_Pfeiffer.py fasta_testfile.fasta 3 -f -p -s 42
+        $ python final_Grabmann_Pfeiffer.py fasta_testfile.fasta 3 -p -s 42
 
     Notes:
         - If both -f (fast) and -p (preserve format) flags are used together, the combination is not allowed.
@@ -257,9 +254,22 @@ def main(args):
 
     if args.preserve_format and args.fast:
         logger.info(
-            "Preserve format is true and fast is true: \n This combination is not possible and cannot be executed. \n Please use the -p flag without the -f flag."
+            " Preserve format is true and fast is true: \n This combination is not possible and cannot be executed. \n Please use the -p flag without the -f flag."
         )
         sys.exit(1)
+
+    if args.fast:
+        logger.info(
+            " Fast parsing is used. Are you sure the file fits into memory? \n If not, please do not use the -f flag."
+        )
+        user_input = input(f" Do you want to exit and check first? (y/n): ").lower()
+
+        if user_input == "y":
+            logger.warning(
+                f"Operation aborted. Please check if the file fits into memory."
+            )
+            print("Exiting script.")
+            sys.exit()
 
     subsample_sequences(
         args.input_file, args.num_reads, args.fast, args.seed, args.preserve_format
