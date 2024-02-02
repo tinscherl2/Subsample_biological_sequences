@@ -61,6 +61,7 @@ The -s flag allows setting a seed for reproducibility.
 The fasta_festfile.fasta was generated with ChatGPT.
 The paired-end fastq.gz files were obtained from https://zenodo.org/records/1236641.
 The faulty.fasta is a file that does not have proper formatting.
+Large fasta/fastq files for testing were downloaded from NCBI (https://trace.ncbi.nlm.nih.gov/Traces/index.html?view=run_browser&acc=SRR13759187&display=download). 
 
 
 # Contributions
@@ -68,7 +69,7 @@ Christina Pfeiffer and Gerlinde Grabmann contributed equally.
 ChatGPT and Copilot are acknowledged for code snipplets and generation of text used in Docstrings and the README file.
 
 # Functionality implemented in the script
-All functions of the assignment were implemented into the python script and extensively tested with the files provided. 
+Requested functionality of the assignment was implemented into the python script and extensively tested with the files provided. 
 
 # Answer to the question: 
 

@@ -10,6 +10,7 @@ import argparse
 import logging
 import shutil
 import os
+import psutil
 
 logging.basicConfig(level=logging.NOTSET)  # configure root logger
 logger = logging.getLogger(__name__)  # create custom logger
@@ -227,6 +228,28 @@ def fasta_output(input_file, selected_records, use_fast_parsing):
             sys.stdout.write(f"{formatted_sequence}")
 
 
+def check_memory(input_file):
+    """Check if the file fits into memory.
+
+    Args:
+        input_file (str): Path to the file containing sequences.
+
+    Returns:
+        None. Prints to stdout.
+    """
+    file_size = os.path.getsize(input_file)
+    available_memory = psutil.virtual_memory().available
+    if file_size > available_memory:
+        logger.warning(
+            f"File size ({file_size}) is larger than available memory ({available_memory})."
+        )
+        user_input = input(f"Do you want to continue? (y/n): ").lower()
+        if user_input != "y":
+            logger.warning(f"Operation aborted. Recheck file size and memory.")
+            sys.stdout.write("Exiting script.")
+            sys.exit()
+
+
 def main(args):
     """Execute the main functionality of the subsampling program.
 
@@ -270,6 +293,8 @@ def main(args):
             )
             print("Exiting script.")
             sys.exit()
+        else:
+            check_memory(args.input_file)
 
     subsample_sequences(
         args.input_file, args.num_reads, args.fast, args.seed, args.preserve_format
