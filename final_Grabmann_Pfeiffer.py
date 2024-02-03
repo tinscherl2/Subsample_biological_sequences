@@ -229,7 +229,7 @@ def fasta_output(input_file, selected_records, use_fast_parsing):
 
 
 def check_memory(input_file):
-    """Check if the file fits into memory.
+    """Check if the file fits into memory and ask the user for confirmation if it does not.
 
     Args:
         input_file (str): Path to the file containing sequences.
@@ -282,19 +282,7 @@ def main(args):
         sys.exit(1)
 
     if args.fast:
-        logger.info(
-            " Fast parsing is used. Are you sure the file fits into memory? \n If not, please do not use the -f flag."
-        )
-        user_input = input(f" Do you want to exit and check first? (y/n): ").lower()
-
-        if user_input == "y":
-            logger.warning(
-                f"Operation aborted. Please check if the file fits into memory."
-            )
-            print("Exiting script.")
-            sys.exit()
-        else:
-            check_memory(args.input_file)
+        check_memory(args.input_file)
 
     subsample_sequences(
         args.input_file, args.num_reads, args.fast, args.seed, args.preserve_format
